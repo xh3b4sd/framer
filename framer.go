@@ -32,7 +32,7 @@ func New(con Config) (*Framer, error) {
 	return f, nil
 }
 
-func (f *Framer) Day() []Frame {
+func (f *Framer) Day() Frames {
 	var sta time.Time
 	var end time.Time
 	{
@@ -44,7 +44,7 @@ func (f *Framer) Day() []Frame {
 		return nil
 	}
 
-	var fra []Frame
+	var fra Frames
 
 	s := timday(sta)
 	e := timday(sta.Add(day))
@@ -52,7 +52,7 @@ func (f *Framer) Day() []Frame {
 	for {
 		fra = append(fra, Frame{Sta: s, End: e})
 
-		if e.After(end) {
+		if e.Equal(end) || e.After(end) {
 			break
 		}
 
@@ -63,8 +63,8 @@ func (f *Framer) Day() []Frame {
 	return fra
 }
 
-func (f *Framer) Exa() []Frame {
-	var dfr []Frame
+func (f *Framer) Exa() Frames {
+	var dfr Frames
 	{
 		dfr = f.Lat()
 	}
@@ -90,8 +90,8 @@ func (f *Framer) Exa() []Frame {
 	return dfr
 }
 
-func (f *Framer) Lat() []Frame {
-	var dfr []Frame
+func (f *Framer) Lat() Frames {
+	var dfr Frames
 	{
 		dfr = f.Day()
 	}
