@@ -18,7 +18,7 @@ type Interface interface {
 	//       }
 	//     ]
 	//
-	Day() []Frame
+	Day() Frames
 	// Exa returns full day frames for the configured period, on the edges
 	// exactly bound to the provided start and end time.
 	//
@@ -37,7 +37,7 @@ type Interface interface {
 	//       }
 	//     ]
 	//
-	Exa() []Frame
+	Exa() Frames
 	// Lat returns full day frames for the configured period, on the edges
 	// exactly bound to the provided end time.
 	//
@@ -56,5 +56,5 @@ type Interface interface {
 	//       }
 	//     ]
 	//
-	Lat() []Frame
+	Lat() Frames
 }
