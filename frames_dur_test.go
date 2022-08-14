@@ -9,7 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func Test_Framer_Dur_Hour(t *testing.T) {
+func Test_Frames_Dur_Hour(t *testing.T) {
 	testCases := []struct {
 		sta time.Time
 		end time.Time
@@ -194,7 +194,7 @@ func Test_Framer_Dur_Hour(t *testing.T) {
 	}
 }
 
-func Test_Framer_Dur_10_Milliseconds(t *testing.T) {
+func Test_Frames_Dur_10_Milliseconds(t *testing.T) {
 	testCases := []struct {
 		sta time.Time
 		end time.Time
