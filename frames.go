@@ -6,7 +6,9 @@ import (
 
 type Frames []Frame
 
-func (f Frames) Contains(fra Frame) bool {
+// Con returns true if Frames contains Frame, based on the respective start and
+// end time.
+func (f Frames) Con(fra Frame) bool {
 	for _, v := range f {
 		if v.Sta.Equal(fra.Sta) && v.End.Equal(fra.End) {
 			return true
@@ -16,14 +18,14 @@ func (f Frames) Contains(fra Frame) bool {
 	return false
 }
 
-func (f Frames) Hour() Frames {
-	max := ceiling(f.Max().End, time.Hour)
-	min := f.Min().Sta.Truncate(time.Hour)
+func (f Frames) Dur(dur time.Duration) Frames {
+	max := ceiling(f.Max().End, dur)
+	min := f.Min().Sta.Truncate(dur)
 
 	var fra []Frame
 
 	s := min
-	e := min.Add(time.Hour)
+	e := min.Add(dur)
 
 	for {
 		fra = append(fra, Frame{Sta: s, End: e})
@@ -32,13 +34,14 @@ func (f Frames) Hour() Frames {
 			break
 		}
 
-		s = s.Add(time.Hour)
-		e = e.Add(time.Hour)
+		s = s.Add(dur)
+		e = e.Add(dur)
 	}
 
 	return fra
 }
 
+// Max returns the Frame within Frames having the latest end time.
 func (f Frames) Max() Frame {
 	var max Frame
 
@@ -51,6 +54,7 @@ func (f Frames) Max() Frame {
 	return max
 }
 
+// Min returns the Frame within Frames having the earliest start time.
 func (f Frames) Min() Frame {
 	min := f[0]
 
@@ -63,11 +67,12 @@ func (f Frames) Min() Frame {
 	return min
 }
 
-func (f Frames) Remove(rem Frames) Frames {
+// Rem returns a new copy of Frames without any frame contained in rem.
+func (f Frames) Rem(rem Frames) Frames {
 	var cle Frames
 
 	for _, v := range f {
-		if !rem.Contains(v) {
+		if !rem.Con(v) {
 			cle = append(cle, v)
 		}
 	}
