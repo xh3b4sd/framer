@@ -18,27 +18,13 @@ func (f Frames) Con(fra Frame) bool {
 	return false
 }
 
+// Dur returns Frames restructured based on dur. If Frames were a list of 5
+// hourly frames and dur were 10 minutes, then Dur would return 30 frames of 10
+// minutes length each.
 func (f Frames) Dur(dur time.Duration) Frames {
-	max := ceiling(f.Max().End, dur)
-	min := f.Min().Sta.Truncate(dur)
-
-	var fra []Frame
-
-	s := min
-	e := min.Add(dur)
-
-	for {
-		fra = append(fra, Frame{Sta: s, End: e})
-
-		if e.Equal(max) {
-			break
-		}
-
-		s = s.Add(dur)
-		e = e.Add(dur)
-	}
-
-	return fra
+	sta := f.Min().Sta.Truncate(dur)
+	end := cei(f.Max().End, dur)
+	return fra(sta, end, dur)
 }
 
 // Max returns the Frame within Frames having the latest end time.
@@ -80,7 +66,7 @@ func (f Frames) Rem(rem Frames) Frames {
 	return cle
 }
 
-func ceiling(t time.Time, d time.Duration) time.Time {
+func cei(t time.Time, d time.Duration) time.Time {
 	f := t.Truncate(d)
 
 	if f.Equal(t) {
@@ -88,4 +74,27 @@ func ceiling(t time.Time, d time.Duration) time.Time {
 	}
 
 	return f.Add(d)
+}
+
+func fra(sta time.Time, end time.Time, dur time.Duration) Frames {
+	max := cei(end, dur)
+	min := sta.Truncate(dur)
+
+	var fra Frames
+
+	s := min
+	e := min.Add(dur)
+
+	for {
+		fra = append(fra, Frame{Sta: s, End: e})
+
+		if e.Equal(max) {
+			break
+		}
+
+		s = s.Add(dur)
+		e = e.Add(dur)
+	}
+
+	return fra
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func Test_Frames_Dur_Hour(t *testing.T) {
+func Test_Framer_List_Hour(t *testing.T) {
 	testCases := []struct {
 		sta time.Time
 		end time.Time
@@ -167,24 +167,18 @@ func Test_Frames_Dur_Hour(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("%03d", i), func(t *testing.T) {
-			var err error
-
-			var f Interface
+			var f *Framer
 			{
-				c := Config{
+				f = New(Config{
 					Sta: tc.sta,
 					End: tc.end,
-				}
-
-				f, err = New(c)
-				if err != nil {
-					t.Fatal(err)
-				}
+					Dur: time.Hour,
+				})
 			}
 
 			var fra Frames
 			{
-				fra = f.Exa().Dur(time.Hour)
+				fra = f.List()
 			}
 
 			if !reflect.DeepEqual(tc.fra, fra) {
@@ -194,7 +188,7 @@ func Test_Frames_Dur_Hour(t *testing.T) {
 	}
 }
 
-func Test_Frames_Dur_10_Milliseconds(t *testing.T) {
+func Test_Framer_List_10_Milliseconds(t *testing.T) {
 	testCases := []struct {
 		sta time.Time
 		end time.Time
@@ -282,24 +276,18 @@ func Test_Frames_Dur_10_Milliseconds(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("%03d", i), func(t *testing.T) {
-			var err error
-
-			var f Interface
+			var f *Framer
 			{
-				c := Config{
+				f = New(Config{
 					Sta: tc.sta,
 					End: tc.end,
-				}
-
-				f, err = New(c)
-				if err != nil {
-					t.Fatal(err)
-				}
+					Dur: 10 * time.Millisecond,
+				})
 			}
 
 			var fra Frames
 			{
-				fra = f.Exa().Dur(10 * time.Millisecond)
+				fra = f.List()
 			}
 
 			if !reflect.DeepEqual(tc.fra, fra) {
