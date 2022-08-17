@@ -77,8 +77,8 @@ func cei(t time.Time, d time.Duration) time.Time {
 }
 
 func fra(sta time.Time, end time.Time, dur time.Duration) Frames {
-	max := cei(end, dur)
 	min := sta.Truncate(dur)
+	max := cei(end, dur)
 
 	var fra Frames
 

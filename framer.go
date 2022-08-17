@@ -55,7 +55,11 @@ func (f *Framer) Next() Frame {
 	var end time.Time
 	{
 		sta = f.poi
-		end = sta.Add(f.dur)
+		end = sta.Add(f.dur).Truncate(f.dur)
+	}
+
+	if end.After(f.end) {
+		end = f.end
 	}
 
 	{

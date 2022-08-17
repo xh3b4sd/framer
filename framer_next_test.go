@@ -58,6 +58,28 @@ func Test_Framer_Next_Hour(t *testing.T) {
 			las: true,
 			fra: Frame{},
 		},
+		// Case 4
+		{
+			sta: time.Date(2022, time.March, 26, 13, 27, 0, 0, time.UTC),
+			end: time.Date(2022, time.March, 27, 6, 5, 0, 0, time.UTC),
+			cou: 1,
+			las: false,
+			fra: Frame{
+				Sta: time.Date(2022, time.March, 26, 13, 27, 0, 0, time.UTC),
+				End: time.Date(2022, time.March, 26, 14, 0, 0, 0, time.UTC),
+			},
+		},
+		// Case 5
+		{
+			sta: time.Date(2022, time.March, 26, 13, 27, 0, 0, time.UTC),
+			end: time.Date(2022, time.March, 27, 6, 5, 0, 0, time.UTC),
+			cou: 18,
+			las: true,
+			fra: Frame{
+				Sta: time.Date(2022, time.March, 27, 6, 0, 0, 0, time.UTC),
+				End: time.Date(2022, time.March, 27, 6, 5, 0, 0, time.UTC),
+			},
+		},
 	}
 
 	for i, tc := range testCases {
