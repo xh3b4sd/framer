@@ -2,115 +2,68 @@ package framer
 
 import (
 	"time"
-
-	"github.com/xh3b4sd/tracer"
 )
 
 type Config struct {
 	Sta time.Time
 	End time.Time
+	Dur time.Duration
 }
 
 type Framer struct {
 	sta time.Time
 	end time.Time
+	dur time.Duration
+	// poi is a pointer to the latest end time from which the next frame can be
+	// constructured.
+	poi time.Time
 }
 
-func New(con Config) (*Framer, error) {
+func New(con Config) *Framer {
 	if con.Sta.IsZero() {
-		return nil, tracer.Maskf(invalidConfigError, "%T.Sta must not be empty", con)
+		panic("Config.Sta must not be empty")
 	}
 	if con.End.IsZero() {
-		return nil, tracer.Maskf(invalidConfigError, "%T.End must not be empty", con)
+		panic("Config.End must not be empty")
+	}
+	if con.Dur == 0 {
+		panic("Config.Dur must not be empty")
 	}
 
-	f := &Framer{
-		sta: con.Sta,
-		end: con.End,
+	return &Framer{
+		sta: con.Sta.UTC(),
+		end: con.End.UTC(),
+		dur: con.Dur,
+		poi: con.Sta.UTC(),
 	}
-
-	return f, nil
 }
 
-func (f *Framer) Day() Frames {
+func (f *Framer) Last() bool {
+	return !f.poi.Before(f.end)
+}
+
+func (f *Framer) List() Frames {
+	return fra(f.sta, f.end, f.dur)
+}
+
+func (f *Framer) Next() Frame {
+	if f.Last() {
+		return Frame{}
+	}
+
 	var sta time.Time
 	var end time.Time
 	{
-		sta = f.sta.UTC()
-		end = f.end.UTC()
-	}
-
-	if !sta.Before(end) {
-		return nil
-	}
-
-	var fra Frames
-
-	s := timday(sta)
-	e := timday(sta.Add(day))
-
-	for {
-		fra = append(fra, Frame{Sta: s, End: e})
-
-		if e.Equal(end) || e.After(end) {
-			break
-		}
-
-		s = s.Add(day)
-		e = e.Add(day)
-	}
-
-	return fra
-}
-
-func (f *Framer) Exa() Frames {
-	var dfr Frames
-	{
-		dfr = f.Lat()
+		sta = f.poi
+		end = sta.Add(f.dur)
 	}
 
 	{
-		if len(dfr) == 0 {
-			return nil
-		}
+		f.poi = end
 	}
 
-	{
-		dfr[0].Sta = f.sta
-
-		if len(dfr) > 0 {
-			if dfr[len(dfr)-1].Sta == f.end {
-				dfr = dfr[:len(dfr)-1]
-			} else {
-				dfr[len(dfr)-1].End = f.end
-			}
-		}
+	return Frame{
+		Sta: sta,
+		End: end,
 	}
-
-	return dfr
-}
-
-func (f *Framer) Lat() Frames {
-	var dfr Frames
-	{
-		dfr = f.Day()
-	}
-
-	{
-		if len(dfr) == 0 {
-			return nil
-		}
-	}
-
-	{
-		if len(dfr) > 0 {
-			if dfr[len(dfr)-1].Sta == f.end {
-				dfr = dfr[:len(dfr)-1]
-			} else {
-				dfr[len(dfr)-1].End = f.end
-			}
-		}
-	}
-
-	return dfr
 }
