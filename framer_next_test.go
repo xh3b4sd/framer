@@ -172,9 +172,6 @@ func Test_Framer_Next_1h(t *testing.T) {
 
 			var fra Frame
 			for i := 0; i < tc.nex; i++ {
-				// if i == 24 {
-				// 	fmt.Printf("\n")
-				// }
 				fra = f.Next()
 			}
 			for i := 0; i < tc.pre; i++ {
