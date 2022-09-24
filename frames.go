@@ -18,13 +18,29 @@ func (f Frames) Con(fra Frame) bool {
 	return false
 }
 
-// Dur returns Frames restructured based on dur. If Frames were a list of 5
-// hourly frames and dur were 10 minutes, then Dur would return 30 frames of 10
-// minutes length each.
-func (f Frames) Dur(dur time.Duration) Frames {
-	sta := f.Min().Sta.Truncate(dur)
-	end := cei(f.Max().End, dur)
-	return fra(sta, end, dur)
+// Len returns Frames restructured based on l. If Frames were a list of 5
+// hourly frames and l were 10 minutes, then Len would return 30 frames of 10
+// minutes length each. Optionally a tick size can be provided, which defaults
+// to l.
+func (f Frames) Len(l time.Duration, t ...time.Duration) Frames {
+	s := f.Min().Sta.Truncate(l)
+	e := cei(f.Max().End, l)
+
+	if len(t) == 0 {
+		t = append(t, l)
+	}
+
+	var n *Framer
+	{
+		n = New(Config{
+			Sta: s,
+			End: e,
+			Len: l,
+			Tic: t[0],
+		})
+	}
+
+	return n.List()
 }
 
 // Max returns the Frame within Frames having the latest end time.
@@ -74,27 +90,4 @@ func cei(t time.Time, d time.Duration) time.Time {
 	}
 
 	return f.Add(d)
-}
-
-func fra(sta time.Time, end time.Time, dur time.Duration) Frames {
-	min := sta.Truncate(dur)
-	max := cei(end, dur)
-
-	var fra Frames
-
-	s := min
-	e := min.Add(dur)
-
-	for {
-		fra = append(fra, Frame{Sta: s, End: e})
-
-		if e.Equal(max) {
-			break
-		}
-
-		s = s.Add(dur)
-		e = e.Add(dur)
-	}
-
-	return fra
 }

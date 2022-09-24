@@ -9,11 +9,12 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func Test_Framer_List_Hour(t *testing.T) {
+func Test_Framer_List_1h(t *testing.T) {
 	testCases := []struct {
 		sta time.Time
 		end time.Time
 		fra Frames
+		tic time.Duration
 	}{
 		// Case 0
 		{
@@ -154,12 +155,49 @@ func Test_Framer_List_Hour(t *testing.T) {
 		},
 		// Case 3
 		{
-			sta: time.Date(2022, time.March, 26, 22, 16, 3, 22, time.UTC),
-			end: time.Date(2022, time.March, 26, 22, 21, 7, 37, time.UTC),
+			sta: time.Date(2022, time.March, 26, 22, 0, 0, 0, time.UTC),
+			end: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
+			tic: 15 * time.Minute,
 			fra: Frames{
 				{
 					Sta: time.Date(2022, time.March, 26, 22, 0, 0, 0, time.UTC),
 					End: time.Date(2022, time.March, 26, 23, 0, 0, 0, time.UTC),
+				},
+				{
+					Sta: time.Date(2022, time.March, 26, 22, 15, 0, 0, time.UTC),
+					End: time.Date(2022, time.March, 26, 23, 15, 0, 0, time.UTC),
+				},
+				{
+					Sta: time.Date(2022, time.March, 26, 22, 30, 0, 0, time.UTC),
+					End: time.Date(2022, time.March, 26, 23, 30, 0, 0, time.UTC),
+				},
+				{
+					Sta: time.Date(2022, time.March, 26, 22, 45, 0, 0, time.UTC),
+					End: time.Date(2022, time.March, 26, 23, 45, 0, 0, time.UTC),
+				},
+				{
+					Sta: time.Date(2022, time.March, 26, 23, 0, 0, 0, time.UTC),
+					End: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
+				},
+			},
+		},
+		// Case 4
+		{
+			sta: time.Date(2022, time.March, 26, 22, 0, 0, 0, time.UTC),
+			end: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
+			tic: 30 * time.Minute,
+			fra: Frames{
+				{
+					Sta: time.Date(2022, time.March, 26, 22, 0, 0, 0, time.UTC),
+					End: time.Date(2022, time.March, 26, 23, 0, 0, 0, time.UTC),
+				},
+				{
+					Sta: time.Date(2022, time.March, 26, 22, 30, 0, 0, time.UTC),
+					End: time.Date(2022, time.March, 26, 23, 30, 0, 0, time.UTC),
+				},
+				{
+					Sta: time.Date(2022, time.March, 26, 23, 0, 0, 0, time.UTC),
+					End: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
 				},
 			},
 		},
@@ -172,7 +210,8 @@ func Test_Framer_List_Hour(t *testing.T) {
 				f = New(Config{
 					Sta: tc.sta,
 					End: tc.end,
-					Dur: time.Hour,
+					Len: time.Hour,
+					Tic: tc.tic,
 				})
 			}
 
@@ -188,11 +227,12 @@ func Test_Framer_List_Hour(t *testing.T) {
 	}
 }
 
-func Test_Framer_List_10_Milliseconds(t *testing.T) {
+func Test_Framer_List_10ms(t *testing.T) {
 	testCases := []struct {
 		sta time.Time
 		end time.Time
 		fra Frames
+		tic time.Duration
 	}{
 		// Case 0
 		{
@@ -247,28 +287,24 @@ func Test_Framer_List_10_Milliseconds(t *testing.T) {
 			end: time.Date(2022, time.March, 27, 4, 12, 36, 85e6, time.UTC),
 			fra: Frames{
 				{
-					Sta: time.Date(2022, time.March, 27, 4, 12, 36, 3e7, time.UTC),
-					End: time.Date(2022, time.March, 27, 4, 12, 36, 4e7, time.UTC),
+					Sta: time.Date(2022, time.March, 27, 4, 12, 36, 35e6, time.UTC),
+					End: time.Date(2022, time.March, 27, 4, 12, 36, 45e6, time.UTC),
 				},
 				{
-					Sta: time.Date(2022, time.March, 27, 4, 12, 36, 4e7, time.UTC),
-					End: time.Date(2022, time.March, 27, 4, 12, 36, 5e7, time.UTC),
+					Sta: time.Date(2022, time.March, 27, 4, 12, 36, 45e6, time.UTC),
+					End: time.Date(2022, time.March, 27, 4, 12, 36, 55e6, time.UTC),
 				},
 				{
-					Sta: time.Date(2022, time.March, 27, 4, 12, 36, 5e7, time.UTC),
-					End: time.Date(2022, time.March, 27, 4, 12, 36, 6e7, time.UTC),
+					Sta: time.Date(2022, time.March, 27, 4, 12, 36, 55e6, time.UTC),
+					End: time.Date(2022, time.March, 27, 4, 12, 36, 65e6, time.UTC),
 				},
 				{
-					Sta: time.Date(2022, time.March, 27, 4, 12, 36, 6e7, time.UTC),
-					End: time.Date(2022, time.March, 27, 4, 12, 36, 7e7, time.UTC),
+					Sta: time.Date(2022, time.March, 27, 4, 12, 36, 65e6, time.UTC),
+					End: time.Date(2022, time.March, 27, 4, 12, 36, 75e6, time.UTC),
 				},
 				{
-					Sta: time.Date(2022, time.March, 27, 4, 12, 36, 7e7, time.UTC),
-					End: time.Date(2022, time.March, 27, 4, 12, 36, 8e7, time.UTC),
-				},
-				{
-					Sta: time.Date(2022, time.March, 27, 4, 12, 36, 8e7, time.UTC),
-					End: time.Date(2022, time.March, 27, 4, 12, 36, 9e7, time.UTC),
+					Sta: time.Date(2022, time.March, 27, 4, 12, 36, 75e6, time.UTC),
+					End: time.Date(2022, time.March, 27, 4, 12, 36, 85e6, time.UTC),
 				},
 			},
 		},
@@ -281,7 +317,8 @@ func Test_Framer_List_10_Milliseconds(t *testing.T) {
 				f = New(Config{
 					Sta: tc.sta,
 					End: tc.end,
-					Dur: 10 * time.Millisecond,
+					Len: 10 * time.Millisecond,
+					Tic: tc.tic,
 				})
 			}
 

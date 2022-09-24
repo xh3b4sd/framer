@@ -4,46 +4,59 @@ import (
 	"time"
 )
 
-type Config struct {
-	Sta time.Time
-	End time.Time
-	Dur time.Duration
-}
-
 type Framer struct {
+	lef time.Time
 	sta time.Time
 	end time.Time
-	dur time.Duration
-	// poi is a pointer to the latest end time from which the next frame can be
-	// constructured.
-	poi time.Time
+	rig time.Time
+	len time.Duration
+	tic time.Duration
 }
 
 func New(con Config) *Framer {
-	if con.Sta.IsZero() {
-		panic("Config.Sta must not be empty")
+	{
+		con = con.Ensure()
 	}
-	if con.End.IsZero() {
-		panic("Config.End must not be empty")
-	}
-	if con.Dur == 0 {
-		panic("Config.Dur must not be empty")
+
+	{
+		con.Verify()
 	}
 
 	return &Framer{
-		sta: con.Sta.UTC(),
-		end: con.End.UTC(),
-		dur: con.Dur,
-		poi: con.Sta.UTC(),
+		lef: con.Sta.UTC(),
+		sta: con.Sta.UTC().Add(-con.Tic),
+		end: con.Sta.UTC().Add(+con.Len).Add(-con.Tic),
+		rig: con.End.UTC(),
+		len: con.Len,
+		tic: con.Tic,
 	}
 }
 
+func (f *Framer) Conf() Config {
+	return Config{
+		Sta: f.sta,
+		End: f.end,
+		Len: f.len,
+		Tic: f.tic,
+	}
+}
+
+func (f *Framer) Firs() bool {
+	return !f.sta.After(f.lef)
+}
+
 func (f *Framer) Last() bool {
-	return !f.poi.Before(f.end)
+	return !f.end.Before(f.rig)
 }
 
 func (f *Framer) List() Frames {
-	return fra(f.sta, f.end, f.dur)
+	var fra Frames
+
+	for !f.Last() {
+		fra = append(fra, f.Next())
+	}
+
+	return fra
 }
 
 func (f *Framer) Next() Frame {
@@ -51,19 +64,47 @@ func (f *Framer) Next() Frame {
 		return Frame{}
 	}
 
+	{
+		f.sta = f.sta.Add(f.tic)
+		f.end = f.end.Add(f.tic)
+	}
+
 	var sta time.Time
 	var end time.Time
 	{
-		sta = f.poi
-		end = sta.Add(f.dur).Truncate(f.dur)
+		sta = f.sta
+		end = f.end
 	}
 
 	if end.After(f.end) {
 		end = f.end
 	}
 
+	return Frame{
+		Sta: sta,
+		End: end,
+	}
+}
+
+func (f *Framer) Prev() Frame {
+	if f.Firs() {
+		return Frame{}
+	}
+
 	{
-		f.poi = end
+		f.sta = f.sta.Add(-f.tic)
+		f.end = f.end.Add(-f.tic)
+	}
+
+	var sta time.Time
+	var end time.Time
+	{
+		sta = f.sta
+		end = f.end
+	}
+
+	if sta.Before(f.sta) {
+		sta = f.sta
 	}
 
 	return Frame{
