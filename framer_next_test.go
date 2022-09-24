@@ -9,11 +9,14 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func Test_Framer_Next_Hour(t *testing.T) {
+func Test_Framer_Next_1h(t *testing.T) {
 	testCases := []struct {
 		sta time.Time
 		end time.Time
-		cou int
+		tic time.Duration
+		nex int
+		pre int
+		fir bool
 		las bool
 		fra Frame
 	}{
@@ -21,7 +24,8 @@ func Test_Framer_Next_Hour(t *testing.T) {
 		{
 			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
 			end: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
-			cou: 1,
+			nex: 1,
+			fir: true,
 			las: false,
 			fra: Frame{
 				Sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
@@ -32,7 +36,7 @@ func Test_Framer_Next_Hour(t *testing.T) {
 		{
 			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
 			end: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
-			cou: 4,
+			nex: 4,
 			las: false,
 			fra: Frame{
 				Sta: time.Date(2022, time.March, 26, 3, 0, 0, 0, time.UTC),
@@ -43,42 +47,114 @@ func Test_Framer_Next_Hour(t *testing.T) {
 		{
 			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
 			end: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
-			cou: 24,
-			las: true,
+			nex: 4,
+			pre: 1,
+			las: false,
 			fra: Frame{
-				Sta: time.Date(2022, time.March, 26, 23, 0, 0, 0, time.UTC),
-				End: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
+				Sta: time.Date(2022, time.March, 26, 2, 0, 0, 0, time.UTC),
+				End: time.Date(2022, time.March, 26, 3, 0, 0, 0, time.UTC),
 			},
 		},
 		// Case 3
 		{
 			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
 			end: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
-			cou: 25,
+			nex: 24,
 			las: true,
-			fra: Frame{},
+			fra: Frame{
+				Sta: time.Date(2022, time.March, 26, 23, 0, 0, 0, time.UTC),
+				End: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
+			},
 		},
 		// Case 4
 		{
-			sta: time.Date(2022, time.March, 26, 13, 27, 0, 0, time.UTC),
-			end: time.Date(2022, time.March, 27, 6, 5, 0, 0, time.UTC),
-			cou: 1,
+			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
+			end: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
+			nex: 24,
+			pre: 4,
 			las: false,
 			fra: Frame{
-				Sta: time.Date(2022, time.March, 26, 13, 27, 0, 0, time.UTC),
-				End: time.Date(2022, time.March, 26, 14, 0, 0, 0, time.UTC),
+				Sta: time.Date(2022, time.March, 26, 19, 0, 0, 0, time.UTC),
+				End: time.Date(2022, time.March, 26, 20, 0, 0, 0, time.UTC),
 			},
 		},
 		// Case 5
 		{
-			sta: time.Date(2022, time.March, 26, 13, 27, 0, 0, time.UTC),
-			end: time.Date(2022, time.March, 27, 6, 5, 0, 0, time.UTC),
-			cou: 18,
+			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
+			end: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
+			nex: 25,
+			las: true,
+			fra: Frame{},
+		},
+		// Case 6
+		{
+			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
+			end: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
+			tic: 10 * time.Minute,
+			nex: 1,
+			fir: true,
+			las: false,
+			fra: Frame{
+				Sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
+				End: time.Date(2022, time.March, 26, 1, 0, 0, 0, time.UTC),
+			},
+		},
+		// Case 7
+		{
+			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
+			end: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
+			tic: 10 * time.Minute,
+			nex: 7,
+			las: false,
+			fra: Frame{
+				Sta: time.Date(2022, time.March, 26, 1, 0, 0, 0, time.UTC),
+				End: time.Date(2022, time.March, 26, 2, 0, 0, 0, time.UTC),
+			},
+		},
+		// Case 8
+		{
+			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
+			end: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
+			tic: 10 * time.Minute,
+			nex: 8,
+			las: false,
+			fra: Frame{
+				Sta: time.Date(2022, time.March, 26, 1, 10, 0, 0, time.UTC),
+				End: time.Date(2022, time.March, 26, 2, 10, 0, 0, time.UTC),
+			},
+		},
+		// Case 9
+		{
+			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
+			end: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
+			tic: 10 * time.Minute,
+			nex: 138,
+			las: false,
+			fra: Frame{
+				Sta: time.Date(2022, time.March, 26, 22, 50, 0, 0, time.UTC),
+				End: time.Date(2022, time.March, 26, 23, 50, 0, 0, time.UTC),
+			},
+		},
+		// Case 10
+		{
+			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
+			end: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
+			tic: 10 * time.Minute,
+			nex: 139,
 			las: true,
 			fra: Frame{
-				Sta: time.Date(2022, time.March, 27, 6, 0, 0, 0, time.UTC),
-				End: time.Date(2022, time.March, 27, 6, 5, 0, 0, time.UTC),
+				Sta: time.Date(2022, time.March, 26, 23, 0, 0, 0, time.UTC),
+				End: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
 			},
+		},
+		// Case 11
+		{
+			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
+			end: time.Date(2022, time.March, 27, 0, 0, 0, 0, time.UTC),
+			tic: 10 * time.Minute,
+			nex: 140,
+			las: true,
+			fra: Frame{},
 		},
 	}
 
@@ -89,13 +165,22 @@ func Test_Framer_Next_Hour(t *testing.T) {
 				f = New(Config{
 					Sta: tc.sta,
 					End: tc.end,
-					Dur: time.Hour,
+					Len: time.Hour,
+					Tic: tc.tic,
 				})
 			}
 
 			var fra Frame
-			for i := 0; i < tc.cou; i++ {
+			for i := 0; i < tc.nex; i++ {
 				fra = f.Next()
+			}
+			for i := 0; i < tc.pre; i++ {
+				fra = f.Prev()
+			}
+
+			var fir bool
+			{
+				fir = f.Firs()
 			}
 
 			var las bool
@@ -106,6 +191,9 @@ func Test_Framer_Next_Hour(t *testing.T) {
 			if !reflect.DeepEqual(tc.fra, fra) {
 				t.Fatalf("fra\n\n%s\n", cmp.Diff(tc.fra, fra))
 			}
+			if !reflect.DeepEqual(tc.fir, fir) {
+				t.Fatalf("fir\n\n%s\n", cmp.Diff(tc.fir, fir))
+			}
 			if !reflect.DeepEqual(tc.las, las) {
 				t.Fatalf("las\n\n%s\n", cmp.Diff(tc.las, las))
 			}
@@ -113,11 +201,13 @@ func Test_Framer_Next_Hour(t *testing.T) {
 	}
 }
 
-func Test_Framer_Next_10_Milliseconds(t *testing.T) {
+func Test_Framer_Next_10ms(t *testing.T) {
 	testCases := []struct {
 		sta time.Time
 		end time.Time
-		cou int
+		tic time.Duration
+		nex int
+		fir bool
 		las bool
 		fra Frame
 	}{
@@ -125,7 +215,8 @@ func Test_Framer_Next_10_Milliseconds(t *testing.T) {
 		{
 			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
 			end: time.Date(2022, time.March, 26, 0, 0, 0, 1e8, time.UTC),
-			cou: 1,
+			nex: 1,
+			fir: true,
 			las: false,
 			fra: Frame{
 				Sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
@@ -136,7 +227,7 @@ func Test_Framer_Next_10_Milliseconds(t *testing.T) {
 		{
 			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
 			end: time.Date(2022, time.March, 26, 0, 0, 0, 1e8, time.UTC),
-			cou: 7,
+			nex: 7,
 			las: false,
 			fra: Frame{
 				Sta: time.Date(2022, time.March, 26, 0, 0, 0, 6e7, time.UTC),
@@ -147,7 +238,7 @@ func Test_Framer_Next_10_Milliseconds(t *testing.T) {
 		{
 			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
 			end: time.Date(2022, time.March, 26, 0, 0, 0, 1e8, time.UTC),
-			cou: 10,
+			nex: 10,
 			las: true,
 			fra: Frame{
 				Sta: time.Date(2022, time.March, 26, 0, 0, 0, 9e7, time.UTC),
@@ -158,9 +249,46 @@ func Test_Framer_Next_10_Milliseconds(t *testing.T) {
 		{
 			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
 			end: time.Date(2022, time.March, 26, 0, 0, 0, 1e8, time.UTC),
-			cou: 11,
+			nex: 11,
 			las: true,
 			fra: Frame{},
+		},
+		// Case 4
+		{
+			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
+			end: time.Date(2022, time.March, 26, 0, 0, 0, 1e8, time.UTC),
+			tic: 2 * time.Millisecond,
+			nex: 1,
+			fir: true,
+			las: false,
+			fra: Frame{
+				Sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
+				End: time.Date(2022, time.March, 26, 0, 0, 0, 1e7, time.UTC),
+			},
+		},
+		// Case 5
+		{
+			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
+			end: time.Date(2022, time.March, 26, 0, 0, 0, 1e8, time.UTC),
+			tic: 2 * time.Millisecond,
+			nex: 2,
+			las: false,
+			fra: Frame{
+				Sta: time.Date(2022, time.March, 26, 0, 0, 0, 0+2e6, time.UTC),
+				End: time.Date(2022, time.March, 26, 0, 0, 0, 1e7+2e6, time.UTC),
+			},
+		},
+		// Case 6
+		{
+			sta: time.Date(2022, time.March, 26, 0, 0, 0, 0, time.UTC),
+			end: time.Date(2022, time.March, 26, 0, 0, 0, 1e8, time.UTC),
+			tic: 2 * time.Millisecond,
+			nex: 6,
+			las: false,
+			fra: Frame{
+				Sta: time.Date(2022, time.March, 26, 0, 0, 0, 1e7, time.UTC),
+				End: time.Date(2022, time.March, 26, 0, 0, 0, 2e7, time.UTC),
+			},
 		},
 	}
 
@@ -171,13 +299,19 @@ func Test_Framer_Next_10_Milliseconds(t *testing.T) {
 				f = New(Config{
 					Sta: tc.sta,
 					End: tc.end,
-					Dur: 10 * time.Millisecond,
+					Len: 10 * time.Millisecond,
+					Tic: tc.tic,
 				})
 			}
 
 			var fra Frame
-			for i := 0; i < tc.cou; i++ {
+			for i := 0; i < tc.nex; i++ {
 				fra = f.Next()
+			}
+
+			var fir bool
+			{
+				fir = f.Firs()
 			}
 
 			var las bool
@@ -187,6 +321,9 @@ func Test_Framer_Next_10_Milliseconds(t *testing.T) {
 
 			if !reflect.DeepEqual(tc.fra, fra) {
 				t.Fatalf("fra\n\n%s\n", cmp.Diff(tc.fra, fra))
+			}
+			if !reflect.DeepEqual(tc.fir, fir) {
+				t.Fatalf("fir\n\n%s\n", cmp.Diff(tc.fir, fir))
 			}
 			if !reflect.DeepEqual(tc.las, las) {
 				t.Fatalf("las\n\n%s\n", cmp.Diff(tc.las, las))
