@@ -178,6 +178,12 @@ func Test_Framer_Next_1h(t *testing.T) {
 				fra = f.Prev()
 			}
 
+			//lint:ignore SA4000 we want to call f.Curr() multiple times in
+			//order to make sure the value remains the same.
+			if !tc.las && (fra != f.Curr() || fra != f.Curr() || f.Curr() != f.Curr()) {
+				t.Fatal("current frame must never change")
+			}
+
 			var fir bool
 			{
 				fir = f.Firs()
@@ -307,6 +313,12 @@ func Test_Framer_Next_10ms(t *testing.T) {
 			var fra Frame
 			for i := 0; i < tc.nex; i++ {
 				fra = f.Next()
+			}
+
+			//lint:ignore SA4000 we want to call f.Curr() multiple times in
+			//order to make sure the value remains the same.
+			if !tc.las && (fra != f.Curr() || fra != f.Curr() || f.Curr() != f.Curr()) {
+				t.Fatal("current frame must never change")
 			}
 
 			var fir bool
