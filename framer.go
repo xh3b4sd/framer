@@ -41,6 +41,15 @@ func (f *Framer) Conf() Config {
 	}
 }
 
+// Current is a view function, returning the internal state tracked for the
+// currently active frame.
+func (f *Framer) Curr() Frame {
+	return Frame{
+		Sta: f.sta,
+		End: f.end,
+	}
+}
+
 func (f *Framer) Firs() bool {
 	return !f.sta.After(f.lef)
 }
@@ -59,6 +68,8 @@ func (f *Framer) List() Frames {
 	return fra
 }
 
+// Next changes the internal state by moving the internal frame currently
+// tracked forward using the configured tick size.
 func (f *Framer) Next() Frame {
 	if f.Last() {
 		return Frame{}
@@ -86,6 +97,8 @@ func (f *Framer) Next() Frame {
 	}
 }
 
+// Prev changes the internal state by moving the internal frame currently
+// tracked backwards using the configured tick size.
 func (f *Framer) Prev() Frame {
 	if f.Firs() {
 		return Frame{}

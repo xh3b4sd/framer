@@ -178,6 +178,20 @@ func Test_Framer_Next_1h(t *testing.T) {
 				fra = f.Prev()
 			}
 
+			// We want to call f.Curr() multiple times in order to make sure the
+			// value remains the same. We cannot inline the calls because the
+			// golinter and/or golangci complains and no ignore directive seemed
+			// to work.
+			{
+				one := f.Curr()
+				two := f.Curr()
+				thr := f.Curr()
+				fou := f.Curr()
+				if !tc.las && (fra != one || fra != two || thr != fou) {
+					t.Fatal("current frame must never change")
+				}
+			}
+
 			var fir bool
 			{
 				fir = f.Firs()
@@ -307,6 +321,20 @@ func Test_Framer_Next_10ms(t *testing.T) {
 			var fra Frame
 			for i := 0; i < tc.nex; i++ {
 				fra = f.Next()
+			}
+
+			// We want to call f.Curr() multiple times in order to make sure the
+			// value remains the same. We cannot inline the calls because the
+			// golinter and/or golangci complains and no ignore directive seemed
+			// to work.
+			{
+				one := f.Curr()
+				two := f.Curr()
+				thr := f.Curr()
+				fou := f.Curr()
+				if !tc.las && (fra != one || fra != two || thr != fou) {
+					t.Fatal("current frame must never change")
+				}
 			}
 
 			var fir bool
